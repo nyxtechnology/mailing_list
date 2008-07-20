@@ -1,0 +1,170 @@
+<?php
+// $Id$
+function mailing_list_perm() {
+  return array('administer mailing list', 'export mailing list');
+}
+
+function mailing_list_menu() {
+  $items = array();
+  $items['admin/settings/mailing-list'] = array(
+    'title'             => t('Mailing List'),
+    'page callback'     => 'mailing_list_admin',
+    'access arguments'  => array('administer mailing list'),
+  );
+  $items['admin/settings/mailing-list/%mailing_list/edit'] = array(
+    'title'             => t('Edit Mailing List'),
+    'page callback'     => 'drupal_get_form',
+    'page arguments'=> array('mailing_list_form', 3),
+    'access arguments'  => array('administer mailing list'),
+  );
+  
+  
+  return $items;
+}
+
+function mailing_list_block($op = 'list', $delta = 0, $edit = array()) {
+  $block = array();
+  switch ($op) {
+    case 'list': 
+      $query = "SELECT * FROM {mailing_list}";
+      $result = db_query($query);
+      while ($row = db_fetch_object($result)) {
+        $block[$row->id] = array(
+          'info' => $row->list,
+        );
+      }
+    break;
+    case 'view': 
+    $list = mailing_list_load($delta);
+      $block = array(
+        'subject' => $list->list ,
+        'content' => drupal_get_form('mailing_list_subscription_form', $list),
+      );
+    break;
+    
+  }
+  
+  
+  return $block;
+}
+function mailing_list_subscription_form(&$form_state, $list ) {
+  $form = array();
+  $form['id']   = array(
+    '#type'       => 'hidden',
+    '#default_value' => $list->id,
+  );
+  $form['list']   = array(
+    '#type'       => 'hidden',
+    '#value'      => $list->list,
+  );
+  $form['email'] = array(
+    '#title'    => t('Email'),
+    '#type'     => 'textfield',
+    '#size'     => 20,
+  );
+  $form['submit'] = array(
+    '#value'      => t('Subscribe'),
+    '#type'       => 'submit',
+    '#submit'     => array('mailing_list_subscription_form_submit'),
+  );
+  $form['#validate'] = array('mailing_list_subscription_form_validate');
+  return $form;
+}
+function mailing_list_subscription_form_validate($form, &$form_state) {
+  $message = user_validate_mail($form_state['values']['email']);
+  if ($message) {
+    form_set_error('email', $message);
+  }
+}
+function mailing_list_subscription_form_submit($form, &$form_state) {
+  if ($form_state['values']['id'] == null) {
+    drupal_set_message('Error occured while saving your subscription. Please contact sie administrators', 'error');
+    return ;
+  }
+  $query = "INSERT INTO {mailing_list_emails} (id, email) VALUES (%d, '%s')";
+  if (db_query($query, $form_state['values']['id'], $form_state['values']['email'])) {
+    drupal_set_message('Your Subscription to <em>'. $form_state['values']['list'] .'</em> has been saved');
+  }
+  else {
+    drupal_set_message('Failed to subscribe to <em>'. $form_state['values']['list'] .'</em> please contact site administrators', 'error');
+  }
+}
+function mailing_list_load($id) {
+  $query = "SELECT * FROM {mailing_list} WHERE id = %d";
+  $return = db_fetch_object(db_query($query, $id));  
+  return $return;
+}
+function mailing_list_admin() {
+  $output = '';
+  $output .= drupal_get_form('mailing_list_form');
+  $output .= mailing_list_lists();
+  return $output;
+}
+function mailing_list_lists() {
+  $query  = "SELECT * FROM {mailing_list}";
+  $result = db_query($query);
+  $rows = array();
+  while ($row = db_fetch_object($result)) {
+    $rows[] = $row->list . ' ' . l('edit', 'admin/settings/mailing-list/'. $row->id .'/edit');
+  }
+  
+  return theme('item_list', $rows, "Available Mailing Lists");
+}
+
+function mailing_list_form(&$form_state, $list = null) {
+
+  $form = array();
+  if ( isset($form_state['values']['id']) || isset($list) ) {
+    $form['id']   = array(
+      '#type'       => 'hidden',
+      '#value'      => isset($form_state['values']['id']) ? $form_state['values']['id'] : isset($list) ? $list->id: null,
+    );
+  }
+  $form['form'] = array(
+    '#title'    => t('Create mailing list'),
+    '#type'     => 'fieldset',
+    '#collapsible'  => TRUE,
+    '#collapsed'    => FALSE,
+  );
+  $form['form']['list_name'] = array(
+    '#title'      => t('Mailing List Name'),
+    '#type'       => 'textfield',
+    '#required'   => TRUE,
+    '#default_value'=> isset($form_state['values']['list_name']) ? $form_state['values']['list_name']: isset($list)?$list->list:'',
+  );
+  $form['form']['submit'] = array(
+    '#value'      => t('Save'),
+    '#type'       => 'submit',
+    '#submit'     => array('mailing_list_form_submit'),
+  );
+  $form['#redirect'] = 'admin/settings/mailing-list';
+  return $form;
+}
+
+function mailing_list_form_submit($form, &$form_state) {
+  if (isset($form_state['values']['id'])) {
+    $query = "UPDATE {mailing_list} SET list = '%s' WHERE id = %d";
+    $result = db_query($query, $form_state['values']['list_name'], $form_state['values']['id']);
+  }
+  else {
+    $query = "INSERT INTO {mailing_list} (list) VALUES ('%s')";
+    $result = db_query($query, $form_state['values']['list_name']);
+  }
+  
+  if ($result) {
+    if (isset($form_state['values']['id']) ) {
+      drupal_set_message('Updated Mailing List: '. check_plain($form_state['values']['list_name']));
+    }
+    else {
+      drupal_set_message('New Mailing List Created: '. check_plain($form_state['values']['list_name']));
+    }
+  }
+  else {
+    if (isset($form_state['values']['id'])) {
+      drupal_set_message('Failed to Update Mailing List: '. check_plain($form_state['values']['list_name']), 'error');
+    }
+    else {
+      drupal_set_message('Failed to Create New Mailing List: '. check_plain($form_state['values']['list_name']), 'error'); 
+    }
+  }
+}

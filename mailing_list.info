@@ -1,0 +1,5 @@
+; $Id$
+name = Mailing List
+description = Minimalistic mailing list module
+package = Mail
+core = 6.x
