@@ -1,0 +1,57 @@
+<?php
+
+function mailing_list_install() {
+  drupal_install_schema('mailing_list');
+}
+
+function mailing_list_uninstall() {
+  drupal_uninstall_schema('mailing_list');
+  db_query("DELETE FROM {blocks} WHERE module = 'mailing_list'");
+}
+
+
+function mailing_list_schema() {
+  $schema = array();
+  $schema['mailing_list'] = array(
+    'description' => t('Mailing list id'),
+    'fields' => array(
+      'id'        => array(
+        'type'    => 'serial',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'list'  =>  array(
+        'description' => t('The title of this mailing list'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),  
+  );
+  $schema['mailing_list_emails'] = array(
+    'description' => t('Emails subscribed to specific fields'),
+    'fields' => array(
+      'id'        => array(
+        'type'    => 'int',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'email'  =>  array(
+        'description' => t('The title of this mailing list'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),  
+    'unique keys' => array(
+      'sub'     => array('id', 'email'),
+      ),
+  );
+  
+  
+  return $schema;
+}
