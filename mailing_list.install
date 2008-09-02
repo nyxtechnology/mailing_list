@@ -17,7 +17,6 @@ function mailing_list_schema() {
     'fields' => array(
       'id'        => array(
         'type'    => 'serial',
-        'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
@@ -35,7 +34,6 @@ function mailing_list_schema() {
     'fields' => array(
       'id'        => array(
         'type'    => 'int',
-        'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
