@@ -17,15 +17,21 @@ function mailing_list_menu() {
     'page arguments'=> array('mailing_list_form', 3),
     'access arguments'  => array('administer mailing list'),
   );
-  
-  
+
+  $items['mailing-list/%mailing_list/export'] = array(
+  	'title' => t('Export Mailing List'),
+  	'page callback' => 'mailing_list_export',
+		'page arguments' => array(1),
+		'access arguments' => array('export mailing list'),
+	);
+
   return $items;
 }
 
 function mailing_list_block($op = 'list', $delta = 0, $edit = array()) {
   $block = array();
   switch ($op) {
-    case 'list': 
+    case 'list':
       $query = "SELECT * FROM {mailing_list}";
       $result = db_query($query);
       while ($row = db_fetch_object($result)) {
@@ -34,17 +40,17 @@ function mailing_list_block($op = 'list', $delta = 0, $edit = array()) {
         );
       }
     break;
-    case 'view': 
+    case 'view':
     $list = mailing_list_load($delta);
       $block = array(
         'subject' => $list->list ,
         'content' => drupal_get_form('mailing_list_subscription_form', $list),
       );
     break;
-    
+
   }
-  
-  
+
+
   return $block;
 }
 function mailing_list_subscription_form(&$form_state, $list ) {
@@ -91,7 +97,7 @@ function mailing_list_subscription_form_submit($form, &$form_state) {
 }
 function mailing_list_load($id) {
   $query = "SELECT * FROM {mailing_list} WHERE id = %d";
-  $return = db_fetch_object(db_query($query, $id));  
+  $return = db_fetch_object(db_query($query, $id));
   return $return;
 }
 function mailing_list_admin() {
@@ -105,10 +111,53 @@ function mailing_list_lists() {
   $result = db_query($query);
   $rows = array();
   while ($row = db_fetch_object($result)) {
-    $rows[] = $row->list . ' ' . l('edit', 'admin/settings/mailing-list/'. $row->id .'/edit');
+    $rows[] = $row->list . ' ' . l('edit', 'admin/settings/mailing-list/'. $row->id .'/edit') . ' ' . l('export' , 'mailing-list/' . $row->id . '/export');
   }
-  
+
   return theme('item_list', $rows, "Available Mailing Lists");
+}
+
+function mailing_list_export($list){
+
+	// --- set up file for export ---//
+
+		//get file directory
+		$path = file_directory_path();
+
+		//create file to hold email list
+		$filename = $list->list. '.csv';
+
+		//full path name
+		$full_path = $path.'/'.$filename;
+
+	// --- get email addresses from database ---//
+
+		//create query for selection of emails
+		$query = "SELECT * FROM {mailing_list_emails} WHERE mailing_list_id='%d'";
+
+		//run query
+		$result = db_query($query, $list->id);
+
+		//create string with all the emails
+		$emails = array();
+		while ($row = db_fetch_object($result)){
+			$emails[] = $row->email;
+		}
+
+		$emails = implode(",\n", $emails);
+
+		//write resultant string to file
+		file_save_data($emails, $full_path, FILE_EXISTS_REPLACE);
+
+		//set headers for file transfer
+		$headers = array(
+			'Content-Type: application/octet-stream',
+			'Content-Disposition: attachment; filename="' . basename($full_path) . '";',
+			'Content-Length: ' . sprintf('%u', filesize($full_path)),
+		);
+
+		file_transfer($full_path, $headers);
+
 }
 
 function mailing_list_form(&$form_state, $list = null) {
@@ -150,7 +199,7 @@ function mailing_list_form_submit($form, &$form_state) {
     $query = "INSERT INTO {mailing_list} (list) VALUES ('%s')";
     $result = db_query($query, $form_state['values']['list_name']);
   }
-  
+
   if ($result) {
     if (isset($form_state['values']['id']) ) {
       drupal_set_message('Updated Mailing List: '. check_plain($form_state['values']['list_name']));
@@ -164,7 +213,7 @@ function mailing_list_form_submit($form, &$form_state) {
       drupal_set_message('Failed to Update Mailing List: '. check_plain($form_state['values']['list_name']), 'error');
     }
     else {
-      drupal_set_message('Failed to Create New Mailing List: '. check_plain($form_state['values']['list_name']), 'error'); 
+      drupal_set_message('Failed to Create New Mailing List: '. check_plain($form_state['values']['list_name']), 'error');
     }
   }
 }
