@@ -33,9 +33,14 @@ function mailing_list_schema() {
     'description' => t('Emails subscribed to specific fields'),
     'fields' => array(
       'id'        => array(
-        'type'    => 'int',
+        'type'    => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
+      ),
+      'mailing_list_id' => array(
+      	'description' => t('Which mailing list the address is subscribed to.'),
+      	'type' => 'int',
+      	'not null' => TRUE,
       ),
       'email'  =>  array(
         'description' => t('The title of this mailing list'),
@@ -45,9 +50,6 @@ function mailing_list_schema() {
       ),
     ),
     'primary key' => array('id'),  
-    'unique keys' => array(
-      'sub'     => array('id', 'email'),
-      ),
   );
   
   

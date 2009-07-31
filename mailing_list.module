@@ -81,7 +81,7 @@ function mailing_list_subscription_form_submit($form, &$form_state) {
     drupal_set_message('Error occured while saving your subscription. Please contact sie administrators', 'error');
     return ;
   }
-  $query = "INSERT INTO {mailing_list_emails} (id, email) VALUES (%d, '%s')";
+  $query = "INSERT INTO {mailing_list_emails} (mailing_list_id, email) VALUES (%d, '%s')";
   if (db_query($query, $form_state['values']['id'], $form_state['values']['email'])) {
     drupal_set_message('Your Subscription to <em>'. $form_state['values']['list'] .'</em> has been saved');
   }
