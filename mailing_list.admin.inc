@@ -114,6 +114,7 @@ function mailing_list_form(&$form_state, $list = null) {
  * Submit handler for the add / rename mailing list form.
  */
 function mailing_list_form_submit($form, &$form_state) {
+//    drupal_set_message('<pre>'. print_r($form_state['values'],1 ) . '</pre>');
   if (isset($form_state['values']['mlid'])) {
     $query = "UPDATE {mailing_list} SET name = '%s' WHERE mlid = %d";
     $result = db_query($query, $form_state['values']['name'], $form_state['values']['mlid']);
@@ -130,7 +131,7 @@ function mailing_list_form_submit($form, &$form_state) {
     }
     else {
       drupal_set_message(t('Created mailing list %name', array('%name' => $form_state['values']['name'])));
-      watchdog('mailing_list', 'Mailing list: created %name.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE, l(t('view'), 'admin/build/mailing-list/'. $form_state['values']['mlid']));
+      watchdog('mailing_list', 'Mailing list: created %name.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE, l(t('view'), 'admin/build/mailing-list/'. db_last_insert_id('mailing_list', 'mlid')));
     }
   }
   else {
