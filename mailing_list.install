@@ -1,57 +1,165 @@
 <?php
+// $Id$
 
+/**
+ * @file
+ * Install and update functions for mailing_list.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
 function mailing_list_install() {
   drupal_install_schema('mailing_list');
 }
 
+/**
+ * Implementation of hook_uninstall().
+ */
 function mailing_list_uninstall() {
   drupal_uninstall_schema('mailing_list');
   db_query("DELETE FROM {blocks} WHERE module = 'mailing_list'");
 }
 
-
+/**
+ * Implementation of hook_schema().
+ */
 function mailing_list_schema() {
   $schema = array();
   $schema['mailing_list'] = array(
-    'description' => t('Mailing list id'),
+    'description' => t('A mailing list consisting of names and e-mails.'),
     'fields' => array(
-      'id'        => array(
-        'type'    => 'serial',
+      'mlid' => array(
+        'description' => 'The primary identifier for a mailing list.',
+        'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'list'  =>  array(
-        'description' => t('The title of this mailing list'),
+      'name' => array(
+        'description' => t('The title of this mailing list.'),
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
       ),
     ),
-    'primary key' => array('id'),  
+    'primary key' => array('mlid'),
+    'indexes' => array(
+      'name' => array('name'),
+    ),
   );
   $schema['mailing_list_emails'] = array(
-    'description' => t('Emails subscribed to specific fields'),
+    'description' => t('An e-mail in a mailing list.'),
     'fields' => array(
-      'id'        => array(
-        'type'    => 'serial',
+      'eid' => array(
+        'description' => 'The primary identifier for a mailing list e-mail.',
+        'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'mailing_list_id' => array(
-      	'description' => t('Which mailing list the address is subscribed to.'),
+      'mlid' => array(
+      	'description' => t('The {mailing_list} this e-mail belongs to.'),
       	'type' => 'int',
+        'unsigned' => TRUE,
       	'not null' => TRUE,
+        'default' => 0,
       ),
-      'email'  =>  array(
-        'description' => t('The title of this mailing list'),
+      'mail' => array(
+        'description' => t('The e-mail of this subscriber.'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => t('The name of this subscriber.'),
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
       ),
     ),
-    'primary key' => array('id'),  
+    'primary key' => array('eid'),
+    'indexes' => array(
+      'mlid' => array('mlid'),
+      'name' => array('name'),
+    ),
+    'unique keys' => array(
+      'mail' => array('mail'),
+    ),
   );
-  
-  
+
+
   return $schema;
+}
+
+/**
+ * Update mailing lists to allow subscriber names (not just e-mails), and clean
+ * up field names.
+ */
+function mailing_list_update_6000() {
+  $ret = array();
+
+  db_change_field($ret, 'mailing_list', 'id', 'mlid',
+    array(
+      'type' => 'serial',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+    )
+  );
+
+  db_change_field($ret, 'mailing_list', 'list', 'name',
+    array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+    ),
+    array(
+      'indexes' => array(
+        'name' => array('name'),
+      ),
+    )
+  );
+
+  db_change_field($ret, 'mailing_list_emails', 'id', 'eid',
+    array(
+      'type' => 'serial',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+    )
+  );
+
+  db_change_field($ret, 'mailing_list_emails', 'mailing_list_id', 'mlid',
+    array(
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+      'default' => 0,
+    ),
+    array(
+      'indexes' => array(
+        'mlid' => array('mlid'),
+      ),
+    )
+  );
+
+  db_change_field($ret, 'mailing_list_emails', 'email', 'mail',
+    array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+    ),
+    array(
+      'unique keys' => array(
+        'mail' => array('mail'),
+      ),
+    )
+  );
+
+  db_add_field($ret, 'mailing_list_emails', 'name', array('type' => 'varchar', 'not null' => TRUE, 'length' => 255), array('indexes' => array('name' => array('name'))));
+
+  $ret[] = update_sql("DELETE FROM {permission} WHERE perm = 'export mailing list'");
+  $result = db_query("SELECT rid, perm FROM {permission} WHERE perm = 'administer mailing list' ORDER BY rid");
+  while ($role = db_fetch_object($result)) {
+    $ret[] = update_sql("UPDATE {permission} SET perm = 'administer mailing lists' WHERE rid = $role->rid");
+  }
+
+  return $ret;
 }
