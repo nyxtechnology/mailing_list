@@ -80,9 +80,10 @@ function mailing_list_schema() {
     'indexes' => array(
       'mlid' => array('mlid'),
       'name' => array('name'),
+      'mail' => array('mail'),
     ),
     'unique keys' => array(
-      'mail' => array('mail'),
+      'mlid_mail' => array('mlid', 'mail'),
     ),
   );
 
@@ -147,8 +148,11 @@ function mailing_list_update_6000() {
       'not null' => TRUE,
     ),
     array(
-      'unique keys' => array(
+      'indexes' => array(
         'mail' => array('mail'),
+      ),
+      'unique keys' => array(
+        'mlid_mail' => array('mlid', 'mail'),
       ),
     )
   );

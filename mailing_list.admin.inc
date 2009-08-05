@@ -166,6 +166,12 @@ function mailing_list_email_form(&$form_state, $list = null, $email = null) {
       '#value' => isset($form_state['values']['mlid']) ? $form_state['values']['mlid'] : isset($list) ? $list->mlid: null,
     );
   }
+  if (isset($form_state['values']['ml_name']) || isset($list)) {
+    $form['ml_name']   = array(
+      '#type' => 'hidden',
+      '#value' => isset($form_state['values']['ml_name']) ? $form_state['values']['ml_name'] : isset($list) ? $list->name: null,
+    );
+  }
   if (isset($form_state['values']['eid']) || isset($email)) {
     $form['eid'] = array(
       '#type' => 'hidden',
@@ -188,6 +194,7 @@ function mailing_list_email_form(&$form_state, $list = null, $email = null) {
     '#type' => 'submit',
     '#submit' => array('mailing_list_email_form_submit'),
   );
+  $form['#validate'][] = 'mailing_list_subscription_form_validate';
   $form['#redirect'] = 'admin/build/mailing-list/'. $list->mlid;
   return $form;
 }

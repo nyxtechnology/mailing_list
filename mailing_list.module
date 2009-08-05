@@ -149,7 +149,7 @@ function mailing_list_block($op = 'list', $delta = 0, $edit = array()) {
       $result = db_query($query);
       while ($list = db_fetch_object($result)) {
         $block[$list->mlid] = array(
-          'info' => check_plain($list->name),
+          'info' => t('Mailing list: @name', array('@name' => $list->name)),
         );
       }
       break;
@@ -158,12 +158,29 @@ function mailing_list_block($op = 'list', $delta = 0, $edit = array()) {
       $list = mailing_list_load($delta);
       $block = array(
         'subject' => check_plain($list->name),
-        'content' => drupal_get_form('mailing_list_subscription_form', $list),
+        'content' => drupal_get_form('mailing_list_subscription_form_'. $delta),
       );
       break;
   }
 
   return $block;
+}
+
+/**
+ * Implementation of hook_forms().
+ *
+ * All subscription forms are build using mailing_list_subscription_form().
+ * hook_forms() is required to provide unique form id for each one.
+ */
+function mailing_list_forms() {
+  $query = db_query('SELECT * FROM {mailing_list}');
+  while ($list = db_fetch_object($query)) {
+    $forms['mailing_list_subscription_form_'. $list->mlid] = array(
+      'callback' => 'mailing_list_subscription_form',
+      'callback arguments' => array($list),
+    );
+  }
+  return $forms;
 }
 
 /**
@@ -242,6 +259,7 @@ function mailing_list_subscription_form(&$form_state, $list) {
     '#title' => t('E-mail'),
     '#type' => 'textfield',
     '#size' => 20,
+    '#required' => TRUE,
   );
   $form['submit'] = array(
     '#value' => t('Subscribe'),
@@ -257,9 +275,6 @@ function mailing_list_subscription_form(&$form_state, $list) {
  * entered.
  */
 function mailing_list_subscription_form_validate($form, &$form_state) {
-  if (variable_get('mailing_list_show_name_'. $form_state['values']['mlid'], 1) && empty($form_state['values']['name'])) {
-    form_set_error('name', t('Name is required.'));
-  }
   $message = user_validate_mail($form_state['values']['mail']);
   if ($message) {
     form_set_error('mail', $message);
