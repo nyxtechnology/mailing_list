@@ -18,7 +18,7 @@ function mailing_list_install() {
  */
 function mailing_list_uninstall() {
   drupal_uninstall_schema('mailing_list');
-  db_query("DELETE FROM {blocks} WHERE module = 'mailing_list'");
+  db_query("DELETE FROM {block} WHERE module = 'mailing_list'");
 }
 
 /**
