@@ -2,301 +2,135 @@
 
 /**
  * @file
- * Minimalistic mailing list module.
+ * Contains the Mailing list module.
  */
 
+use Drupal\Core\Url;
+use Drupal\Core\Render\Element;
+use Drupal\mailing_list\SubscriptionInterface;
+
 /**
- * Implementation of hook_help().
+ * Implements hook_theme().
  */
-function mailing_list_help($path, $arg) {
-  if ($path == 'admin/build/mailing-list/%/import') {
-    return t('The import facility allows you to upload a CSV file containing e-mail addresses, and optional names, to add to your mailing list. The CSV file should have the e-mails as its first column, and the names (where available) as its second column. It must not have any header row.');
+function mailing_list_theme() {
+  return [
+    'subscription' => [
+      'render element' => 'elements',
+    ],
+    'subscription_add_list' => [
+      'variables' => ['content' => NULL],
+    ],
+  ];
+}
+
+/**
+ * Prepares variables for list of available mailing lists.
+ *
+ * Default template: subscription-add-list.html.twig.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - content: An array of mailing lists.
+ */
+function template_preprocess_subscription_add_list(&$variables) {
+  $variables['lists'] = [];
+  if (!empty($variables['content'])) {
+    foreach ($variables['content'] as $list) {
+      $variables['lists'][$list->id()] = [
+        'list' => $list->id(),
+        'label' => $list->label(),
+        'add_url' => Url::fromRoute('mailing_list.subscribe', ['mailing_list' => $list->id()]),
+        'description' => [
+          '#markup' => $list->getDescription(),
+        ],
+      ];
+    }
   }
 }
 
 /**
- * Implementation of hook_perm().
+ * Prepares variables for subscription templates.
+ *
+ * Default template: subscription.html.twig.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - elements: An array of elements to display in view entry.
+ *   - subscription: The subscription object.
+ *   - view_mode: View mode; e.g., 'full', 'teaser', etc.
  */
-function mailing_list_perm() {
-  return array('administer mailing lists');
+function template_preprocess_subscription(&$variables) {
+  $variables['view_mode'] = $variables['elements']['#view_mode'];
+  $variables['subscription'] = $variables['elements']['#subscription'];
+  /** @var \Drupal\mailing_list\SubscriptionInterface $subscription */
+  $subscription = $variables['subscription'];
+  $variables['date'] = drupal_render($variables['elements']['created']);
+  unset($variables['elements']['created']);
+  $variables['author_name'] = drupal_render($variables['elements']['uid']);
+  unset($variables['elements']['uid']);
+
+  $variables['url'] = $subscription->url('canonical', [
+    'language' => $subscription->language(),
+  ]);
+  $variables['label'] = $variables['elements']['title'];
+  unset($variables['elements']['title']);
+  $variables['email'] = $variables['elements']['email'];
+  unset($variables['elements']['email']);
+
+  // Helpful $content variable for templates.
+  $variables += ['content' => []];
+  foreach (Element::children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
 }
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_mail().
  */
-function mailing_list_menu() {
-  $items = array();
+function mailing_list_mail($key, &$message, $params) {
+  /** @var \Drupal\mailing_list\SubscriptionInterface $subscription */
+  $subscription = isset($params['subscription']) ? $params['subscription'] : NULL;
 
-  $items['admin/build/mailing-list'] = array(
-    'title' => t('Mailing lists'),
-    'description' => t('Manage your mailing lists.'),
-    'page callback' => 'mailing_list_lists',
-    'access arguments' => array('administer mailing lists'),
-    'file' => 'mailing_list.admin.inc',
-  );
-  $items['admin/build/mailing-list/list'] = array(
-    'title' => 'List',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -10,
-  );
-  $items['admin/build/mailing-list/add'] = array(
-    'title' => t('Add'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('mailing_list_form'),
-    'access arguments' => array('administer mailing lists'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'mailing_list.admin.inc',
-  );
-  $items['admin/build/mailing-list/%mailing_list'] = array(
-    'title' => 'List e-mails',
-    'type' => MENU_CALLBACK,
-    'page callback' => 'mailing_list_emails',
-    'page arguments' => array(3),
-    'access arguments' => array('administer mailing lists'),
-    'file' => 'mailing_list.admin.inc',
-  );
-  $items['admin/build/mailing-list/%mailing_list/list'] = array(
-    'title' => 'List e-mails',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -10,
-  );
-  $items['admin/build/mailing-list/%mailing_list/add'] = array(
-    'title' => t('Add e-mail'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('mailing_list_email_form', 3),
-    'access arguments' => array('administer mailing lists'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => -5,
-    'file' => 'mailing_list.admin.inc',
-  );
-  $items['admin/build/mailing-list/%mailing_list/import'] = array(
-  	'title' => t('Import e-mails'),
-  	'page callback' => 'drupal_get_form',
-    'page arguments' => array('mailing_list_import_form', 3),
-		'access arguments' => array('administer mailing lists'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => -2,
-    'file' => 'mailing_list.admin.inc',
-	);
-  $items['admin/build/mailing-list/%mailing_list/export'] = array(
-  	'title' => t('Export list'),
-  	'page callback' => 'mailing_list_export',
-		'page arguments' => array(3),
-		'access arguments' => array('administer mailing lists'),
-		'type' => MENU_LOCAL_TASK,
-    'weight' => 0,
-    'file' => 'mailing_list.admin.inc',
-	);
-	$items['admin/build/mailing-list/%mailing_list/edit'] = array(
-    'title' => t('Rename list'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('mailing_list_form', 3),
-    'access arguments' => array('administer mailing lists'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 5,
-    'file' => 'mailing_list.admin.inc',
-  );
-  $items['admin/build/mailing-list/%mailing_list/delete'] = array(
-    'title' => 'Delete list',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('mailing_list_delete_confirm', 3),
-    'access arguments' => array('administer mailing lists'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 10,
-    'file' => 'mailing_list.admin.inc',
-  );
-  $items['admin/build/mailing-list/%mailing_list/%mailing_list_email'] = array(
-    'title' => 'Edit e-mail',
-    'type' => MENU_CALLBACK,
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('mailing_list_email_form', 3, 4),
-    'access arguments' => array('administer mailing lists'),
-    'file' => 'mailing_list.admin.inc',
-  );
-  $items['admin/build/mailing-list/%mailing_list/%mailing_list_email/delete'] = array(
-    'title' => 'Delete e-mail',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('mailing_list_email_delete_confirm', 3, 4),
-    'access arguments' => array('administer mailing lists'),
-    'type' => MENU_CALLBACK,
-    'file' => 'mailing_list.admin.inc',
-  );
+  switch ($key) {
+    // Notify the subscriber about subscription limit reached.
+    case 'subscription_limit_reached':
+      $list_name = $subscription->getList()->label();
+      $message['subject'] = t('Your subscription to the @list mailing list has failed', ['@list' => $list_name]);
+      $message['body'][] = t('It was not possible to complete your subscription to the @list mailing list because you have reached the maximum number of subscriptions allowed.', ['@list' => $list_name]);
+      $message['body'][] = t('You can modify or delete any of your existing subscriptions at @url', ['@url' => '***pending of subscription management']);
 
-  return $items;
-}
-
-/**
- * Implementation of hook_block().
- */
-function mailing_list_block($op = 'list', $delta = 0, $edit = array()) {
-  $block = array();
-  switch ($op) {
-    case 'configure':
-      $form['mailing_list_show_name_'. $delta] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Show name field in subscription form'),
-        '#default_value' => variable_get('mailing_list_show_name_'. $delta, 1),
-        '#description' => t('Whether or not to show a text field in the subscription form that this block displays, letting a subscriber enter his or her name. If the name field is shown, it also becomes required.'),
-      );
-      return $form;
-
-    case 'save':
-      variable_set('mailing_list_show_name_'. $delta, $edit['mailing_list_show_name_'. $delta]);
-
-    case 'list':
-      $query = "SELECT * FROM {mailing_list}";
-      $result = db_query($query);
-      while ($list = db_fetch_object($result)) {
-        $block[$list->mlid] = array(
-          'info' => t('Mailing list: @name', array('@name' => $list->name)),
-        );
-      }
-      break;
-
-    case 'view':
-      $list = mailing_list_load($delta);
-      $block = array(
-        'subject' => check_plain($list->name),
-        'content' => drupal_get_form('mailing_list_subscription_form_'. $delta),
-      );
       break;
   }
-
-  return $block;
 }
 
 /**
- * Implementation of hook_forms().
- *
- * All subscription forms are build using mailing_list_subscription_form().
- * hook_forms() is required to provide unique form id for each one.
+ * Implements hook_cron().
  */
-function mailing_list_forms() {
-  $query = db_query('SELECT * FROM {mailing_list}');
-  while ($list = db_fetch_object($query)) {
-    $forms['mailing_list_subscription_form_'. $list->mlid] = array(
-      'callback' => 'mailing_list_subscription_form',
-      'callback arguments' => array($list),
-    );
-  }
-  return $forms;
-}
+function mailing_list_cron() {
+  // Purge old subscriptions.
+  /** @var \Drupal\mailing_list\MailingListInterface $list */
+  foreach (\Drupal::entityTypeManager()->getStorage('mailing_list')->loadMultiple() as $list) {
+    $lifetime = $list->getInactiveLifetime();
+    if (empty($lifetime)) {
+      // No purge.
+      return;
+    }
 
-/**
- * Return the mailing list object matching a mailing list ID.
- *
- * @param $mlid
- *   The mailing list's ID.
- *
- * @return
- *   The mailing list object, if exists, FALSE otherwise.
- */
-function mailing_list_load($mlid) {
-  $query = "SELECT * FROM {mailing_list} WHERE mlid = %d";
-  $return = db_fetch_object(db_query($query, $mlid));
-  return $return;
-}
+    $subscription_query = \Drupal::entityQuery('mailing_list_subscription');
+    $old_subscriptions = $subscription_query
+      ->condition('mailing_list', $list->id())
+      ->condition('status', SubscriptionInterface::INACTIVE)
+      ->condition('changed', REQUEST_TIME - $lifetime, '<')
+      ->execute();
 
-/**
- * Return the mailing list e-mail object matching an e-mail ID.
- *
- * @param $eid
- *   The e-mail's ID.
- *
- * @return
- *   The mailing list e-mail object, if exists, FALSE otherwise.
- */
-function mailing_list_email_load($eid) {
-  $query = "SELECT * FROM {mailing_list_emails} WHERE eid = %d";
-  $return = db_fetch_object(db_query($query, $eid));
-  return $return;
-}
+    $count = 0;
+    foreach ($old_subscriptions as $sid) {
+      \Drupal::entityTypeManager()->getStorage('mailing_list_subscription')->load($sid)->delete();
+      $count++;
+    }
 
-/**
- * Gets the name for a subscriber e-mail if available, otherwise gets the
- * e-mail address.
- *
- * @param $data
- *   Subscriber object.
- *
- * @return
- *   Subscriber name or subscriber e-mail.
- */
-function mailing_list_email_get_name($data) {
-  $data = (object)$data;
-  return !empty($data->name) ? $data->name : $data->mail;
-}
-
-/**
- * Display a form letting a user subscribe to a mailing list.
- */
-function mailing_list_subscription_form(&$form_state, $list) {
-  $form = array();
-  $form['mlid'] = array(
-    '#type' => 'hidden',
-    '#default_value' => $list->mlid,
-  );
-  $form['ml_name'] = array(
-    '#type' => 'hidden',
-    '#value' => $list->name,
-  );
-  if (variable_get('mailing_list_show_name_'. $list->mlid, 1)) {
-    $form['name'] = array(
-      '#title' => t('Name'),
-      '#type' => 'textfield',
-      '#size' => 20,
-      '#required' => TRUE,
-    );
-  }
-  else {
-    $form['name'] = array(
-      '#type' => 'hidden',
-      '#value' => '',
-    );
-  }
-  $form['mail'] = array(
-    '#title' => t('E-mail'),
-    '#type' => 'textfield',
-    '#size' => 20,
-    '#required' => TRUE,
-  );
-  $form['submit'] = array(
-    '#value' => t('Subscribe'),
-    '#type' => 'submit',
-    '#submit' => array('mailing_list_subscription_form_submit'),
-  );
-  $form['#validate'] = array('mailing_list_subscription_form_validate');
-  return $form;
-}
-
-/**
- * Validation handler for the subscription form; checks name and e-mail
- * entered.
- */
-function mailing_list_subscription_form_validate($form, &$form_state) {
-  $message = user_validate_mail($form_state['values']['mail']);
-  if ($message) {
-    form_set_error('mail', $message);
-  }
-  elseif (db_fetch_object(db_query("SELECT * FROM {mailing_list_emails} WHERE mlid = %d AND mail = '%s'", $form_state['values']['mlid'], $form_state['values']['mail']))) {
-    form_set_error('mail', t('The e-mail %mail already exists in mailing list %name.', array('%mail' => $form_state['values']['mail'], '%name' => $form_state['values']['ml_name'])));
-  }
-}
-
-/**
- * Submit handler for the subscription form; saves a subscription.
- */
-function mailing_list_subscription_form_submit($form, &$form_state) {
-  if ($form_state['values']['mlid'] == null) {
-    drupal_set_message(t('Unable to save mailing list subscription: no mailing list specified.'), 'error');
-    return;
-  }
-  $query = "INSERT INTO {mailing_list_emails} (mlid, name, mail) VALUES (%d, '%s', '%s')";
-  if (db_query($query, $form_state['values']['mlid'], $form_state['values']['name'], $form_state['values']['mail'])) {
-    drupal_set_message(t('Subscription for %mail saved.', array('%mail' => $form_state['values']['mail'])));
-    watchdog('mailing_list', 'Mailing list: %name added via subscription form.', array('%name' => $form_state['values']['mail']));
-  }
-  else {
-    drupal_set_message(t('Failed to subscribe to mailing list %name.', array('%name' => $form_state['values']['ml_name'])), 'error');
+    if ($count > 0) {
+      \Drupal::logger('mailing_list')->info('Purged @count old inactive subscriptions.', ['@count' => $count]);
+    }
   }
 }

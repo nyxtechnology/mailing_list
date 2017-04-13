@@ -1,0 +1,10 @@
+name: 'Mailing list email confirm'
+type: module
+description: 'Email confirmation for mailing list subscriptions.'
+package: Mail
+#configure: ***pte
+core: 8.x
+dependencies:
+  - mailing_list
+  - email_confirmer
+  - options
