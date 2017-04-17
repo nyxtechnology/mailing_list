@@ -242,7 +242,7 @@ function mailing_list_confirm_mail_alter(&$message) {
 
       // Alter the confirmation body.
       $message['body'] = [
-        t('We have received a request to subscribe @email to the @list mailing list on @site website at @site_url. Please, reply to this request using the link below.\n\n @link', [
+        t("We have received a request to subscribe @email to the @list mailing list on @site website at @site_url. Please, reply to this request using the link below.\n\n@link", [
           '@email' => $subscription->getEmail(),
           '@list' => $list->label(),
           '@site' => \Drupal::config('system.site')->get('name'),
