@@ -176,11 +176,12 @@ function mailing_list_confirm_mailing_list_subscription_update(EntityInterface $
 
   /** @var \Drupal\email_confirmer\EmailConfirmationInterface $confirmation */
   $realm = 'mailing_list_confirm_' . $entity->getListId();
-  if (!$confirmation = $email_confirmer->getConfirmation($email, 'pending', $realm)) {
-    // No pending confirmation found; creating new one.
+  if (!($confirmation = $email_confirmer->getConfirmation($email, 'pending', $realm))
+    || $confirmation->getProperty('mailing_list_sid') != $entity->id()) {
+    // No pending confirmation found for this subscription; creating new one.
     $confirmation = $email_confirmer->createConfirmation($email)
-      ->setRealm($realm)
       ->setProperty('mailing_list_sid', $entity->id())
+      ->setRealm($realm)
       ->setResponseURL($entity->toUrl('form-destination'));
   }
 
