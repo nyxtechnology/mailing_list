@@ -138,15 +138,17 @@ function mailing_list_confirm_mailing_list_subscription_presave(EntityInterface 
 
     case MAILING_LIST_CONFIRM_TO_BE_CONFIRMED:
       /** @var \Drupal\email_confirmer\EmailConfirmationInterface $confirmation */
-      // Email address already confirmed by any realm confirm the subscription.
-      if (\Drupal::service('email_confirmer')->getConfirmation($entity->getEmail(), 'confirmed')) {
+      // If email is already confirmed by the user, confirm this subscription.
+      if ($entity->getOwner()->isAuthenticated()
+        && ($confirmation = \Drupal::service('email_confirmer')->getConfirmation($entity->getEmail(), 'confirmed'))
+        && $confirmation->get('uid')->target_id == $entity->getOwnerId()) {
         $status_field->setValue(MAILING_LIST_CONFIRM_CONFIRMED);
-        $entity->setStatus(SubscriptionInterface::ACTIVE);
       }
       else {
-        // Confirmation needed, so deactivate until confirmation is received.
+        // Confirmation needed, set as inactive until confirmation is received.
         $entity->setStatus(SubscriptionInterface::INACTIVE);
       }
+
       break;
   }
 }
