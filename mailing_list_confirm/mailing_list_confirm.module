@@ -118,15 +118,20 @@ function mailing_list_confirm_mailing_list_insert(EntityInterface $entity) {
 function mailing_list_confirm_mailing_list_subscription_presave(EntityInterface $entity) {
   /** @var \Drupal\mailing_list\SubscriptionInterface $entity */
 
-  // Act only on subscription activation or new active subscription.
-  if ($entity->getOwner()->hasPermission('bypass ' . $entity->getListId() . ' mailing list subscription confirm')
-    || !$entity->isActive()
-    || (isset($entity->original) && $entity->original->isActive())) {
+  // Act on active subscriptions.
+  if (!$entity->isActive()
+    || $entity->getOwner()->hasPermission('bypass ' . $entity->getListId() . ' mailing list subscription confirm')) {
     return;
   }
 
   $status_field = $entity->get('email_confirmation_status');
   switch ($status_field->value) {
+    case MAILING_LIST_CONFIRM_CONFIRMED:
+      // Act on email address alteration.
+      if (!isset($entity->original) || $entity->original->getEmail() == $entity->getEmail()) {
+        break;
+      }
+
     case MAILING_LIST_CONFIRM_NOT_CONFIRMED:
       // Deactivate subscription and mark it as to be confirmed.
       $status_field->setValue(MAILING_LIST_CONFIRM_TO_BE_CONFIRMED);
