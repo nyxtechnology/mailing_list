@@ -70,7 +70,7 @@ class SubscriptionBlock extends BlockBase implements ContainerFactoryPluginInter
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The current user.
    */
-  public function __construct($configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, FormBuilderInterface $form_builder, MailingListManagerInterface $mailing_list_manager, AccountInterface $current_user) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, FormBuilderInterface $form_builder, MailingListManagerInterface $mailing_list_manager, AccountInterface $current_user) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->entityTypeManager = $entity_type_manager;
     $this->formBuilder = $form_builder;
@@ -133,13 +133,13 @@ class SubscriptionBlock extends BlockBase implements ContainerFactoryPluginInter
 
     $form['manage_link'] = [
       '#type' => 'checkbox',
-      '#title' => t('Show manage subscriptions link'),
+      '#title' => $this->t('Show manage subscriptions link'),
       '#default_value' => $this->configuration['manage_link'],
     ];
 
     $form['list'] = [
       '#type' => 'select',
-      '#title' => t('Mailing list'),
+      '#title' => $this->t('Mailing list'),
       '#options' => $options,
       '#required' => TRUE,
       '#default_value' => $this->configuration['list'] ?: key($options),
@@ -148,7 +148,7 @@ class SubscriptionBlock extends BlockBase implements ContainerFactoryPluginInter
     // Block message.
     $form['message'] = [
       '#type' => 'textfield',
-      '#title' => t('Block message'),
+      '#title' => $this->t('Block message'),
       '#size' => 60,
       '#maxlength' => 255,
       '#description' => $this->t('Message to the user. Leave empty for display the mailing list configured help. Enter @none for no message at all.', ['@none' => '<none>']),
@@ -158,7 +158,7 @@ class SubscriptionBlock extends BlockBase implements ContainerFactoryPluginInter
     // Subscription form ID.
     $form['form_id'] = [
       '#type' => 'textfield',
-      '#title' => t('Form ID'),
+      '#title' => $this->t('Form ID'),
       '#field_prefix' => 'mailing_list_subscription_&lt;LIST-ID&gt;_',
       '#field_suffix' => '_block_form',
       '#size' => 16,
@@ -206,7 +206,7 @@ class SubscriptionBlock extends BlockBase implements ContainerFactoryPluginInter
     /** @var \Drupal\mailing_list\SubscriptionInterface $entity */
     $entity = $this->entityTypeManager->getStorage('mailing_list_subscription')->create([
       'mailing_list' => $this->configuration['list'],
-      'email' => \Drupal::currentUser()->getEmail(),
+      'email' => $this->currentUser->getEmail(),
     ]);
     $form_object->setEntity($entity);
 

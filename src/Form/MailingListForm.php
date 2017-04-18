@@ -132,7 +132,7 @@ class MailingListForm extends BundleEntityFormBase {
       '#group' => 'additional_settings',
     ];
 
-    $secs_per_week = 7*24*60*60;
+    $secs_per_week = 7 * 24 * 60 * 60;
     $options = [
       $secs_per_week => $this->t('1 week'),
     ];

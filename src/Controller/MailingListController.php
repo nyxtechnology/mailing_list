@@ -26,7 +26,7 @@ class MailingListController extends ControllerBase implements ContainerInjection
   /**
    * Construct a MailingListController instance.
    *
-   * @param MailingListManagerInterface $mailing_list_manager
+   * @param \Drupal\mailing_list\MailingListManagerInterface $mailing_list_manager
    *   The mailing list manager.
    */
   public function __construct(MailingListManagerInterface $mailing_list_manager) {

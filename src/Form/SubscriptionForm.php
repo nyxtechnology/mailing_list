@@ -4,7 +4,6 @@ namespace Drupal\mailing_list\Form;
 
 use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Url;
 
 /**
  * Form controller for mailing list subscription form.
@@ -70,24 +69,24 @@ class SubscriptionForm extends ContentEntityForm {
         '#type' => 'vertical_tabs',
         '#weight' => 99,
       ];
-  
+
       $form['subscription_authoring'] = [
         '#type' => 'details',
         '#title' => $this->t('Subscription authoring'),
         '#open' => TRUE,
         '#group' => 'advanced',
       ];
-  
+
       $form['uid']['#group'] = 'subscription_authoring';
       $form['created']['#group'] = 'subscription_authoring';
-  
+
       $form['subscription_status'] = [
         '#type' => 'details',
         '#title' => $this->t('Subscription status'),
         '#open' => TRUE,
         '#group' => 'advanced',
       ];
-  
+
       $form['status']['#group'] = 'subscription_status';
     }
 

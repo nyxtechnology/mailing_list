@@ -32,7 +32,7 @@ function mailing_list_theme() {
  *   An associative array containing:
  *   - content: An array of mailing lists.
  */
-function template_preprocess_subscription_add_list(&$variables) {
+function template_preprocess_subscription_add_list(array &$variables) {
   $variables['lists'] = [];
   if (!empty($variables['content'])) {
     foreach ($variables['content'] as $list) {
@@ -59,7 +59,7 @@ function template_preprocess_subscription_add_list(&$variables) {
  *   - subscription: The subscription object.
  *   - view_mode: View mode; e.g., 'full', 'teaser', etc.
  */
-function template_preprocess_subscription(&$variables) {
+function template_preprocess_subscription(array &$variables) {
   $variables['view_mode'] = $variables['elements']['#view_mode'];
   $variables['subscription'] = $variables['elements']['#subscription'];
   /** @var \Drupal\mailing_list\SubscriptionInterface $subscription */

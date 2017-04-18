@@ -127,7 +127,7 @@ function mailing_list_confirm_mailing_list_subscription_presave(EntityInterface 
   $status_field = $entity->get('email_confirmation_status');
   switch ($status_field->value) {
     case MAILING_LIST_CONFIRM_CONFIRMED:
-      // Act on email address alteration.
+      // Confirm new email address on changes.
       if (!isset($entity->original) || $entity->original->getEmail() == $entity->getEmail()) {
         break;
       }
@@ -135,7 +135,6 @@ function mailing_list_confirm_mailing_list_subscription_presave(EntityInterface 
     case MAILING_LIST_CONFIRM_NOT_CONFIRMED:
       // Deactivate subscription and mark it as to be confirmed.
       $status_field->setValue(MAILING_LIST_CONFIRM_TO_BE_CONFIRMED);
-      // No break.
 
     case MAILING_LIST_CONFIRM_TO_BE_CONFIRMED:
       /** @var \Drupal\email_confirmer\EmailConfirmationInterface $confirmation */
@@ -209,7 +208,7 @@ function mailing_list_confirm_email_confirmer($op, EmailConfirmationInterface $c
 
     switch ($op) {
       case 'confirm':
-        // Successfull email confirmation, Set subscription as active.
+        // Successful email confirmation, set subscription as active.
         $subscription->get('email_confirmation_status')->setValue(MAILING_LIST_CONFIRM_CONFIRMED);
         $subscription->setStatus(SubscriptionInterface::ACTIVE);
         $subscription->save();

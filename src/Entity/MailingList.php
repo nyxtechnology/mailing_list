@@ -166,7 +166,7 @@ class MailingList extends ConfigEntityBundleBase implements MailingListInterface
   public function getInactiveLifetime() {
     return $this->inactive_subscriptions_liftime;
   }
-  
+
   /**
    * {@inheritdoc}
    */
@@ -298,9 +298,9 @@ class MailingList extends ConfigEntityBundleBase implements MailingListInterface
       // Remove subscription blocks.
       foreach (\Drupal::entityTypeManager()->getStorage('block')->loadMultiple(
         \Drupal::entityQuery('block')
-        ->condition('plugin', 'mailing_list_subscription_block')
-        ->condition('settings.list', $entity->id())
-        ->execute()) as $block) {
+          ->condition('plugin', 'mailing_list_subscription_block')
+          ->condition('settings.list', $entity->id())
+          ->execute()) as $block) {
         $block->delete();
       }
     }

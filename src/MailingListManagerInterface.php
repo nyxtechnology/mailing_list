@@ -12,7 +12,7 @@ interface MailingListManagerInterface {
   /**
    * Grants the current user access to a subscription for the current session.
    *
-   * @param SubscriptionInterface $subscription
+   * @param \Drupal\mailing_list\SubscriptionInterface\SubscriptionInterface $subscription
    *   The subscription.
    */
   public function grantSessionAccess(SubscriptionInterface $subscription);
@@ -20,7 +20,7 @@ interface MailingListManagerInterface {
   /**
    * Revoke any session access to a subscription to the current user.
    *
-   * @param SubscriptionInterface $subscription
+   * @param \Drupal\mailing_list\SubscriptionInterface\SubscriptionInterface $subscription
    *   The subscription.
    */
   public function revokeSessionAccess(SubscriptionInterface $subscription);
@@ -28,7 +28,7 @@ interface MailingListManagerInterface {
   /**
    * Checks if the current user has session access to a given subscription.
    *
-   * @param SubscriptionInterface $subscription
+   * @param \Drupal\mailing_list\SubscriptionInterface\SubscriptionInterface $subscription
    *   The subscription.
    *
    * @return bool
