@@ -208,6 +208,8 @@ function mailing_list_confirm_email_confirmer($op, EmailConfirmationInterface $c
         $subscription->get('email_confirmation_status')->setValue(MAILING_LIST_CONFIRM_CONFIRMED);
         $subscription->setStatus(SubscriptionInterface::ACTIVE);
         $subscription->save();
+        // Grant session access to the confirmed subscription.
+        \Drupal::service('mailing_list.manager')->grantSessionAccess($subscription);
         break;
 
       case 'cancel':
