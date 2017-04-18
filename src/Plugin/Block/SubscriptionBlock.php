@@ -230,7 +230,7 @@ class SubscriptionBlock extends BlockBase implements ContainerFactoryPluginInter
     }
 
     // Add manage subscription link.
-    if ($this->configuration['manage_link'] && $this->currentUser->isAuthenticated()) {
+    if ($this->configuration['manage_link']) {
       $manage_url = Url::fromRoute('entity.mailing_list_subscription.manage');
       if ($manage_url->access()) {
         $form['manage_link'] = [
