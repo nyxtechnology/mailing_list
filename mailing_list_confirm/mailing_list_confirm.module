@@ -244,15 +244,15 @@ function mailing_list_confirm_mail_alter(&$message) {
 
       // Alter the confirmation body.
       $message['body'] = [
-        t("We have received a request to subscribe @email to the @list mailing list on @site website at @site_url. Please, reply to this request using the link below.\n\n@link", [
+        t("We have received a request to subscribe @email to the @list mailing list on @site website at @site_url. Please, reply to this request using the link below.", [
           '@email' => $subscription->getEmail(),
           '@list' => $list->label(),
           '@site' => \Drupal::config('system.site')->get('name'),
           '@site_url' => Url::fromRoute('<front>')->setAbsolute()->toString(),
-          '@link' => Url::fromRoute(
-            'entity.email_confirmer_confirmation.response_form',
-            ['email_confirmer_confirmation' => $confirmation->uuid(), 'hash' => $confirmation->getHash()])->setAbsolute()->toString(),
         ]),
+        Url::fromRoute(
+          'entity.email_confirmer_confirmation.response_form',
+          ['email_confirmer_confirmation' => $confirmation->uuid(), 'hash' => $confirmation->getHash()])->setAbsolute()->toString(),
       ];
     }
   }
