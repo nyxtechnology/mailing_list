@@ -133,13 +133,15 @@ class MailingListController extends ControllerBase implements ContainerInjection
       // The access link is the only way that anonymous users have to manage
       // all their subscriptions. We will grant session access to any
       // additional anonymous subscription with the same email.
-      foreach ($subscription_storage->loadMultiple($subscription_storage->getQuery()
-        ->condition('uid', 0)
-        ->condition('email', $subscription->getEmail())
-        ->condition('status', SubscriptionInterface::ACTIVE)
-        ->execute()) as $additional_subscription) {
-        if (!$additional_subscription->access('view')) {
-          $this->mailingListManager->grantSessionAccess($additional_subscription);
+      if ($this->currentUser()->isAnonymous()) {
+        foreach ($subscription_storage->loadMultiple($subscription_storage->getQuery()
+          ->condition('uid', 0)
+          ->condition('email', $subscription->getEmail())
+          ->condition('status', SubscriptionInterface::ACTIVE)
+          ->execute()) as $additional_subscription) {
+          if (!$additional_subscription->access('view')) {
+            $this->mailingListManager->grantSessionAccess($additional_subscription);
+          }
         }
       }
 
