@@ -197,7 +197,7 @@ function mailing_list_confirm_mailing_list_subscription_update(EntityInterface $
     $confirmation = $email_confirmer->createConfirmation($email)
       ->setProperty('mailing_list_sid', $entity->id())
       ->setRealm($realm)
-      ->setResponseURL($response_url, 'confirm');
+      ->setResponseUrl($response_url, 'confirm');
   }
 
   $confirmation->sendRequest();
