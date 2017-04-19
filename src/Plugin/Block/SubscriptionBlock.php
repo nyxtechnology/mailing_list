@@ -32,7 +32,7 @@ class SubscriptionBlock extends BlockBase implements ContainerFactoryPluginInter
   protected $entityTypeManager;
 
   /**
-   * The entity form builder.
+   * The form builder.
    *
    * @var \Drupal\Core\Form\FormBuilderInterface
    */
@@ -64,7 +64,7 @@ class SubscriptionBlock extends BlockBase implements ContainerFactoryPluginInter
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    * @param \Drupal\Core\Entity\FormBuilderInterface $form_builder
-   *   The entity form builder object.
+   *   The form builder object.
    * @param \Drupal\mailing_list\MailingListManagerInterface $mailing_list_manager
    *   The mailing list manager.
    * @param \Drupal\Core\Session\AccountInterface $current_user

@@ -97,7 +97,19 @@ function mailing_list_mail($key, &$message, $params) {
       $list_name = $subscription->getList()->label();
       $message['subject'] = t('Your subscription to the @list mailing list has failed', ['@list' => $list_name]);
       $message['body'][] = t('It was not possible to complete your subscription to the @list mailing list because you have reached the maximum number of subscriptions allowed.', ['@list' => $list_name]);
-      $message['body'][] = t('You can modify or delete any of your existing subscriptions at @url', ['@url' => '***pending of subscription management']);
+      $message['body'][] = t('You can modify or delete your existing subscriptions at the link below.');
+      $message['body'][] = Url::fromRoute('mailing_list.access_subscription', [
+        'sid' => $subscription->id(),
+        'hash' => $subscription->getAccessHash(),
+        'rel' => 'manage',
+      ]);
+
+      break;
+
+    case 'anonymous_subscription_access':
+      $message['subject'] = t('Accessing your mailing list subscriptions');
+      $message['body'][] = t('According to your request, you can modify or delete your existing subscriptions at the link below.');
+      $message['body'][] = $params['manage_url'];
 
       break;
   }

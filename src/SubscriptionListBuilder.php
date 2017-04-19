@@ -9,6 +9,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Form\FormBuilderInterface;
 
 /**
  * Defines a class to build a listing of subscriptions.
@@ -25,6 +26,13 @@ class SubscriptionListBuilder extends EntityListBuilder {
   protected $currentUser;
 
   /**
+   * The form builder.
+   *
+   * @var \Drupal\Core\Form\FormBuilderInterface
+   */
+  protected $formBuilder;
+
+  /**
    * Contruct a new SubscriptionListBuilder object.
    *
    * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
@@ -33,10 +41,13 @@ class SubscriptionListBuilder extends EntityListBuilder {
    *   The action storage.
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The current user.
+   * @param \Drupal\Core\Entity\FormBuilderInterface $form_builder
+   *   The form builder object.
    */
-  public function __construct(EntityTypeInterface $entity_type, EntityStorageInterface $storage, AccountInterface $current_user) {
+  public function __construct(EntityTypeInterface $entity_type, EntityStorageInterface $storage, AccountInterface $current_user, FormBuilderInterface $form_builder) {
     parent::__construct($entity_type, $storage);
     $this->currentUser = $current_user;
+    $this->formBuilder = $form_builder;
   }
 
   /**
@@ -46,7 +57,8 @@ class SubscriptionListBuilder extends EntityListBuilder {
     return new static(
       $entity_type,
       $container->get('entity.manager')->getStorage($entity_type->id()),
-      $container->get('current_user')
+      $container->get('current_user'),
+      $container->get('form_builder')
     );
   }
 
@@ -123,6 +135,13 @@ class SubscriptionListBuilder extends EntityListBuilder {
    */
   public function render() {
     $build = parent::render();
+
+    // Anonymous users with no session started has no subscription access. We
+    // return the anonymous subscription access form.
+    if (!count($build['table']['#rows']) && $this->currentUser->isAnonymous()) {
+      return $this->formBuilder->getForm('\Drupal\mailing_list\Form\AnonymousSubscriptionAccessForm');
+    }
+
     $build['table']['#empty'] = $this->t('No subscriptions found.');
 
     // Prevent search engines from indexing this subscriptions list and pages.
