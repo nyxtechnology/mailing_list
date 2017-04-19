@@ -185,10 +185,19 @@ function mailing_list_confirm_mailing_list_subscription_update(EntityInterface $
   if (!($confirmation = $email_confirmer->getConfirmation($email, 'pending', $realm))
     || $confirmation->getProperty('mailing_list_sid') != $entity->id()) {
     // No pending confirmation found for this subscription; creating new one.
+
+    // Sets subscription access as confirmation response URL for anonymous user
+    // to follow the standard subscription behaviour.
+    $response_url = $entity->getOwnerId() > 0 ? $entity->toUrl('form-destination') : Url::fromRoute('mailing_list.access_subscription', [
+      'sid' => $entity->id(),
+      'hash' => $entity->getAccessHash(),
+      'rel' => 'form-destination',
+    ]);
+
     $confirmation = $email_confirmer->createConfirmation($email)
       ->setProperty('mailing_list_sid', $entity->id())
       ->setRealm($realm)
-      ->setResponseURL($entity->toUrl('form-destination'));
+      ->setResponseURL($response_url, 'confirm');
   }
 
   $confirmation->sendRequest();

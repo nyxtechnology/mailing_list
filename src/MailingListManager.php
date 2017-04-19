@@ -53,11 +53,13 @@ class MailingListManager implements MailingListManagerInterface {
    * {@inheritdoc}
    */
   public function grantSessionAccess(SubscriptionInterface $subscription) {
+    // We need user session even for anonymous users.
     if ($this->currentUser->isAnonymous() && !isset($_SESSION['session_started'])) {
       $_SESSION['session_started'] = TRUE;
       $this->sessionManager->start();
     }
 
+    // Add subscription to the session access permissions.
     $collection = $this->userPrivateTempstore->get('mailing_list');
     if (!$grants = $collection->get('grants')) {
       $grants = [];

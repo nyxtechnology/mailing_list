@@ -110,4 +110,4 @@ mailing_list.access_subscription:
     _access: 'TRUE'
     sid: ^[0-9]+$
     hash: ^[a-zA-Z0-9\-_]{43}$
-    rel: ^(canonical|edit-form|delete-form|manage)$
+    rel: ^(canonical|edit-form|delete-form|manage|form-destination)$
