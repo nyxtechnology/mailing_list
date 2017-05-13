@@ -268,6 +268,7 @@ class Subscription extends ContentEntityBase implements SubscriptionInterface {
         'type' => 'author',
         'weight' => 0,
       ])
+      ->setDisplayConfigurable('view', TRUE)
       ->setDisplayOptions('form', [
         'type' => 'entity_reference_autocomplete',
         'weight' => 5,
@@ -278,8 +279,7 @@ class Subscription extends ContentEntityBase implements SubscriptionInterface {
           'placeholder' => '',
         ],
       ])
-      ->setDisplayConfigurable('form', TRUE)
-      ->setDisplayConfigurable('view', TRUE);
+      ->setDisplayConfigurable('form', TRUE);
 
     // Subscription title or name.
     $fields['title'] = BaseFieldDefinition::create('string')
@@ -310,6 +310,7 @@ class Subscription extends ContentEntityBase implements SubscriptionInterface {
         'type' => 'string',
         'weight' => 0,
       ])
+      ->setDisplayConfigurable('view', TRUE)
       ->setDisplayOptions('form', [
         'type' => 'email_default',
         'weight' => 0,
@@ -323,10 +324,6 @@ class Subscription extends ContentEntityBase implements SubscriptionInterface {
       ->setRevisionable(TRUE)
       ->setTranslatable(TRUE)
       ->setDefaultValue(SubscriptionInterface::ACTIVE)
-      ->setDisplayOptions('view', [
-        'type' => 'string',
-        'weight' => 0,
-      ])
       ->setDisplayOptions('form', [
         'type' => 'boolean_checkbox',
         'title' => t('Subscription status'),
@@ -346,6 +343,7 @@ class Subscription extends ContentEntityBase implements SubscriptionInterface {
         'type' => 'timestamp',
         'weight' => 0,
       ])
+      ->setDisplayConfigurable('view', TRUE)
       ->setDisplayOptions('form', [
         'type' => 'datetime_timestamp',
         'weight' => 10,
