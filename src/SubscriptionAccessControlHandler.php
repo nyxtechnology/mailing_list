@@ -40,7 +40,8 @@ class SubscriptionAccessControlHandler extends EntityAccessControlHandler {
     }
 
     // Subscription owner check.
-    if ($account->isAnonymous() || !$is_owner = $account->id() == $entity->getOwnerId()) {
+    $is_owner = $account->id() == $entity->getOwnerId();
+    if ($account->isAnonymous() || !$is_owner) {
       // Check for session grants.
       $is_owner = \Drupal::service('mailing_list.manager')->hasSessionAccess($entity);
     }

@@ -97,7 +97,7 @@ class SubscriptionListBuilder extends EntityListBuilder {
    */
   public function buildRow(EntityInterface $entity) {
     /** @var \Drupal\mailing_list\SubscriptionInterface $entity */
-    if ($entity->getOwnerId() != $this->currentUser->id() || !$entity->access('view')) {
+    if (!$entity->access('view')) {
       return;
     }
 
