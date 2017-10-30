@@ -59,6 +59,12 @@ class MailingListManager implements MailingListManagerInterface {
       $this->sessionManager->start();
     }
 
+    if (!$this->sessionManager->isStarted()) {
+      // Unable to start the session, may be called from CLI or no cookies
+      // allowed.
+      return;
+    }
+
     // Add subscription to the session access permissions.
     $collection = $this->userPrivateTempstore->get('mailing_list');
     if (!$grants = $collection->get('grants')) {
