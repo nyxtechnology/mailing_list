@@ -124,15 +124,10 @@ class SubscriptionForm extends ContentEntityForm {
         break;
 
       default:
-        if ($message = $list->getOnCancellationMessage()) {
-          drupal_set_message($message);
-        }
-        else {
-          drupal_set_message($this->t('Subscription %label to the %list mailing list has been updated.', [
-            '%label' => $entity->label(),
-            '%list' => $list->label(),
-          ]));
-        }
+        drupal_set_message($this->t('Subscription %label to the %list mailing list has been updated.', [
+          '%label' => $entity->label(),
+          '%list' => $list->label(),
+        ]));
     }
 
     // Set form destination.
