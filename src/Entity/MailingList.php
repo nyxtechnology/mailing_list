@@ -36,7 +36,9 @@ use Drupal\mailing_list\MailingListInterface;
  *     "edit-form" = "/admin/structure/mailing_lists/{mailing_list}/edit",
  *     "delete-form" = "/admin/structure/emailing_lists/{mailing_list}/delete",
  *     "collection" = "/admin/structure/mailing_lists",
- *     "auto-label" = "/admin/structure/mailing_lists/{mailing_list}/auto-label"
+ *     "auto-label" = "/admin/structure/mailing_lists/{mailing_list}/auto-label",
+ *     "export" = "/admin/structure/mailing_lists/{mailing_list}/export",
+ *     "import" = "/admin/structure/mailing_lists/{mailing_list}/import",
  *   },
  *   config_export = {
  *     "id",

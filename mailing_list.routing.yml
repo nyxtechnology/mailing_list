@@ -29,6 +29,26 @@ entity.mailing_list.delete_form:
   requirements:
     _entity_access: 'mailing_list.delete'
 
+entity.mailing_list.export:
+  path: '/admin/structure/mailing-lists/manage/{mailing_list}/export'
+  defaults:
+    _form: '\Drupal\mailing_list\Form\MailingListExportForm'
+    _title: 'Mailing list subscription export'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'administer mailing list subscriptions'
+
+entity.mailing_list.import:
+  path: '/admin/structure/mailing-lists/manage/{mailing_list}/import'
+  defaults:
+    _form: '\Drupal\mailing_list\Form\MailingListImportForm'
+    _title: 'Mailing list subscription import'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'administer mailing list subscriptions'
+
 entity.mailing_list_subscription.collection:
   path: '/admin/people/mailing-list-subscription'
   defaults:

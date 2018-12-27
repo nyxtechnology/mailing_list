@@ -43,6 +43,22 @@ class MailingListListBuilder extends ConfigEntityListBuilder {
   /**
    * {@inheritdoc}
    */
+  public function getOperations(EntityInterface $entity) {
+    $operations = parent::getOperations($entity);
+    $operations['export'] = [
+      'title' => $this->t('Export e-mail addresses'),
+      'url' => Url::fromRoute('entity.mailing_list.export', ['mailing_list' => $entity->id()])
+    ];
+    $operations['import'] = [
+      'title' => $this->t('Import e-mail addresses'),
+      'url' => Url::fromRoute('entity.mailing_list.import', ['mailing_list' => $entity->id()])
+    ];
+    return $operations;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function render() {
     $build = parent::render();
     $build['table']['#empty'] = $this->t('No mailing lists available. <a href=":link">Add mailing list</a>.', [
