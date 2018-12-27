@@ -10,6 +10,7 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Form\FormBuilderInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Defines a class to build a listing of subscriptions.
@@ -33,6 +34,13 @@ class SubscriptionListBuilder extends EntityListBuilder {
   protected $formBuilder;
 
   /**
+   * The request stack.
+   *
+   * @var \Symfony\Component\HttpFoundation\RequestStack
+   */
+  protected $requestStack;
+
+  /**
    * Contruct a new SubscriptionListBuilder object.
    *
    * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
@@ -41,13 +49,16 @@ class SubscriptionListBuilder extends EntityListBuilder {
    *   The action storage.
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The current user.
-   * @param \Drupal\Core\Entity\FormBuilderInterface $form_builder
+   * @param \Drupal\Core\Form\FormBuilderInterface $form_builder
    *   The form builder object.
+   * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
+   *   The request stack.
    */
-  public function __construct(EntityTypeInterface $entity_type, EntityStorageInterface $storage, AccountInterface $current_user, FormBuilderInterface $form_builder) {
+  public function __construct(EntityTypeInterface $entity_type, EntityStorageInterface $storage, AccountInterface $current_user, FormBuilderInterface $form_builder, RequestStack $request_stack) {
     parent::__construct($entity_type, $storage);
     $this->currentUser = $current_user;
     $this->formBuilder = $form_builder;
+    $this->requestStack = $request_stack;
   }
 
   /**
@@ -58,7 +69,8 @@ class SubscriptionListBuilder extends EntityListBuilder {
       $entity_type,
       $container->get('entity.manager')->getStorage($entity_type->id()),
       $container->get('current_user'),
-      $container->get('form_builder')
+      $container->get('form_builder'),
+      $container->get('request_stack')
     );
   }
 
@@ -96,12 +108,12 @@ class SubscriptionListBuilder extends EntityListBuilder {
    * {@inheritdoc}
    */
   public function buildRow(EntityInterface $entity) {
+    $row = [];
+
     /** @var \Drupal\mailing_list\SubscriptionInterface $entity */
     if (!$entity->access('view')) {
-      return;
+      return $row;
     }
-
-    $row = [];
 
     $uri = $entity->urlInfo();
     $options = $uri->getOptions();
@@ -157,6 +169,29 @@ class SubscriptionListBuilder extends EntityListBuilder {
     ];
 
     return $build;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getEntityIds() {
+    $query = $this->getStorage()->getQuery()
+      ->sort($this->entityType->getKey('id'));
+
+    // Filter by email address for anonymous users when come from a hashed
+    // access link.
+    if ($this->currentUser->isAnonymous()
+      && ($sid = $this->requestStack->getMasterRequest()->get('mailing_list_subscription'))
+      && $subscription = $this->getStorage()->load($sid)) {
+      $query->condition('email', $subscription->getEmail());
+    }
+
+    // Only add the pager if a limit is specified.
+    if ($this->limit) {
+      $query->pager($this->limit);
+    }
+
+    return $query->execute();
   }
 
 }
