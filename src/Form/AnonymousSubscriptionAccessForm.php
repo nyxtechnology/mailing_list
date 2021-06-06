@@ -121,7 +121,7 @@ class AnonymousSubscriptionAccessForm extends FormBase {
     }
 
     // Returns the same message to prevent subscribers email disclosure.
-    drupal_set_message($this->t('Your request has been successfully processed. You will receive a message with access instructions only if at least one active subscription was found for your email. If you do not receive any messages in short, you probably do not have any active subscription on this site.'));
+    $this->messenger()->addStatus($this->t('Your request has been successfully processed. You will receive a message with access instructions only if at least one active subscription was found for your email. If you do not receive any messages in short, you probably do not have any active subscription on this site.'));
     $form_state->setRedirectUrl(Url::fromRoute('<front>'));
   }
 

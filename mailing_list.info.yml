@@ -4,3 +4,4 @@ description: 'Multipurpose mailing lists with subscriptions.'
 package: Mail
 configure: entity.mailing_list.collection
 core: 8.x
+core_version_requirement: ^8 || ^9

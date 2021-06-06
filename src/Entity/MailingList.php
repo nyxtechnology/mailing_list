@@ -236,7 +236,7 @@ class MailingList extends ConfigEntityBundleBase implements MailingListInterface
       if ($this->getOriginalId() != $this->id()) {
         $update_count = $this->entityTypeManager()->getStorage('subscription')->updateType($this->getOriginalId(), $this->id());
         if ($update_count) {
-          drupal_set_message(\Drupal::translation()->formatPlural($update_count,
+          \Drupal::messenger()->addStatus(\Drupal::translation()->formatPlural($update_count,
             'Changed the mailing list of 1 subscription from %old-type to %type.',
             'Changed the mailing list of @count subscriptions from %old-type to %type.',
             [

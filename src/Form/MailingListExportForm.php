@@ -121,7 +121,7 @@ class MailingListExportForm extends FormBase {
       $emails[] = $subscription->getEmail();
     }
 
-    drupal_set_message(empty($emails)
+    $this->messenger()->addStatus(empty($emails)
       ? $this->t('No subscriptions found.')
       : $this->formatPlural(count($emails), 'Found 1 subscription.', 'Found @count subscriptions', ['@count' => count($emails)]));
 

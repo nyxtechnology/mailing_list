@@ -188,7 +188,7 @@ class MailingListImportForm extends FormBase {
       }
     }
 
-    drupal_set_message(!$count
+    $this->messenger()->addStatus(!$count
       ? $this->t('No subscriptions added.')
       : $this->formatPlural($count, '1 subscription added to %label mailing list.', '@count new subscriptions added to %label mailing list.', ['@count' => $count, '%label' => $this->mailingList->label()]));
 

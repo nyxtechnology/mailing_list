@@ -5,7 +5,7 @@ namespace Drupal\mailing_list;
 use Drupal\mailing_list\SubscriptionInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Session\SessionManagerInterface;
-use Drupal\user\PrivateTempStoreFactory;
+use Drupal\Core\TempStore\PrivateTempStoreFactory;
 
 /**
  * Mailing list manager implementation.
@@ -29,7 +29,7 @@ class MailingListManager implements MailingListManagerInterface {
   /**
    * The user private temp store factory.
    *
-   * @var \Drupal\user\PrivateTempStoreFactory
+   * @var \Drupal\Core\TempStore\PrivateTempStoreFactory
    */
   protected $userPrivateTempstore;
 
@@ -40,13 +40,13 @@ class MailingListManager implements MailingListManagerInterface {
    *   The current user.
    * @param \Drupal\Core\Session\SessionManagerInterface $session_manager
    *   The session manager.
-   * @param \Drupal\user\PrivateTempStoreFactory $user_private_tempstore
+   * @param \Drupal\Core\TempStore\PrivateTempStoreFactory $tempstore
    *   The user temp store.
    */
-  public function __construct(AccountInterface $current_user, SessionManagerInterface $session_manager, PrivateTempStoreFactory $user_private_tempstore) {
+  public function __construct(AccountInterface $current_user, SessionManagerInterface $session_manager, PrivateTempStoreFactory $tempstore) {
     $this->currentUser = $current_user;
     $this->sessionManager = $session_manager;
-    $this->userPrivateTempstore = $user_private_tempstore;
+    $this->userPrivateTempstore = $tempstore;
   }
 
   /**
@@ -70,7 +70,7 @@ class MailingListManager implements MailingListManagerInterface {
     if (!$grants = $collection->get('grants')) {
       $grants = [];
     }
-    $grants[$subscription->uuid()] = REQUEST_TIME;
+    $grants[$subscription->uuid()] = \Drupal::time()->getRequestTime();
     $collection->set('grants', $grants);
   }
 

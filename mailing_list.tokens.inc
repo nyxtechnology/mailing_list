@@ -168,15 +168,15 @@ function mailing_list_tokens($type, $tokens, $data, $options, BubbleableMetadata
         break;
 
       case 'url':
-        $replacements[$original] = $subscription->url('canonical', $url_options);
+        $replacements[$original] = $subscription->toUrl('canonical', $url_options)->toString();
         break;
 
       case 'edit-url':
-        $replacements[$original] = $subscription->url('edit-form', $url_options);
+        $replacements[$original] = $subscription->toUrl('edit-form', $url_options)->toString();
         break;
 
       case 'cancel-url':
-        $replacements[$original] = $subscription->url('delete-form', $url_options);
+        $replacements[$original] = $subscription->toUrl('delete-form', $url_options)->toString();
         break;
 
       case 'unrestricted-view-url':
@@ -225,13 +225,13 @@ function mailing_list_tokens($type, $tokens, $data, $options, BubbleableMetadata
       case 'created':
         $date_format = DateFormat::load('medium');
         $bubbleable_metadata->addCacheableDependency($date_format);
-        $replacements[$original] = format_date($subscription->getCreatedTime(), 'medium', '', NULL, $langcode);
+        $replacements[$original] = \Drupal::service('date.formatter')->format($subscription->getCreatedTime(), 'medium', '', NULL, $langcode);
         break;
 
       case 'changed':
         $date_format = DateFormat::load('medium');
         $bubbleable_metadata->addCacheableDependency($date_format);
-        $replacements[$original] = format_date($subscription->getChangedTime(), 'medium', '', NULL, $langcode);
+        $replacements[$original] = \Drupal::service('date.formatter')->format($subscription->getChangedTime(), 'medium', '', NULL, $langcode);
         break;
     }
   }

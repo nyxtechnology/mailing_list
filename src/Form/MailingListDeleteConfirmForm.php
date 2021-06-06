@@ -5,7 +5,7 @@ namespace Drupal\mailing_list\Form;
 use Drupal\Core\Entity\EntityConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
-use Drupal\Core\Entity\Query\QueryFactory;
+use Drupal\Core\Entity\EntityTypeManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -16,18 +16,18 @@ class MailingListDeleteConfirmForm extends EntityConfirmFormBase {
   /**
    * The query factory to create entity queries.
    *
-   * @var \Drupal\Core\Entity\Query\QueryFactory
+   * @var \Drupal\Core\Entity\EntityTypeManager
    */
   protected $queryFactory;
 
   /**
    * Constructs a new MailingListDeleteConfirmForm object.
    *
-   * @param \Drupal\Core\Entity\Query\QueryFactory $query_factory
+   * @param \Drupal\Core\Entity\EntityTypeManager $entityTypeManager
    *   The entity query object.
    */
-  public function __construct(QueryFactory $query_factory) {
-    $this->queryFactory = $query_factory;
+  public function __construct(EntityTypeManager $entityTypeManager) {
+    $this->queryFactory = $entityTypeManager;
   }
 
   /**
@@ -35,7 +35,7 @@ class MailingListDeleteConfirmForm extends EntityConfirmFormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('entity.query')
+      $container->get('entity_type.manager')
     );
   }
 
@@ -43,8 +43,8 @@ class MailingListDeleteConfirmForm extends EntityConfirmFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $subscription_count = $this->queryFactory->get('mailing_list_subscription')
-      ->condition('mailing_list', $this->entity->id())
+    $subscription_count = $this->queryFactory->getStorage('mailing_list_subscription')->getQuery();
+    $subscription_count->condition('mailing_list', $this->entity->id())
       ->count()
       ->execute();
 
@@ -90,14 +90,12 @@ class MailingListDeleteConfirmForm extends EntityConfirmFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->entity->delete();
 
-    drupal_set_message(
-      $this->t('content @type: deleted @label.',
-        [
-          '@type' => $this->entity->bundle(),
-          '@label' => $this->entity->label(),
-        ]
-      )
-    );
+    $this->messenger()->addStatus($this->t('content @type: deleted @label.',
+      [
+        '@type' => $this->entity->bundle(),
+        '@label' => $this->entity->label(),
+      ]
+    ));
 
     $form_state->setRedirectUrl($this->getCancelUrl());
   }

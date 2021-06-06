@@ -3,7 +3,7 @@
 namespace Drupal\mailing_list\Form;
 
 use Drupal\Core\Entity\BundleEntityFormBase;
-use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -16,18 +16,18 @@ class MailingListForm extends BundleEntityFormBase {
   /**
    * The entity manager.
    *
-   * @var \Drupal\Core\Entity\EntityManagerInterface
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityManager;
 
   /**
    * Constructs the MailingListForm object.
    *
-   * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity manager.
    */
-  public function __construct(EntityManagerInterface $entity_manager) {
-    $this->entityManager = $entity_manager;
+  public function __construct(EntityTypeManagerInterface $entity_type_manager) {
+    $this->entityManager = $entity_type_manager;
   }
 
   /**
@@ -35,7 +35,7 @@ class MailingListForm extends BundleEntityFormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('entity.manager')
+      $container->get('entity_type.manager')
     );
   }
 
@@ -227,10 +227,10 @@ class MailingListForm extends BundleEntityFormBase {
     $t_args = ['%name' => $mailing_list->label()];
 
     if ($status == SAVED_UPDATED) {
-      drupal_set_message(t('The mailing list %name has been updated.', $t_args));
+      $this->messenger()->addStatus(t('The mailing list %name has been updated.', $t_args));
     }
     elseif ($status == SAVED_NEW) {
-      drupal_set_message(t('The mailing list %name has been added.', $t_args));
+      $this->messenger()->addStatus(t('The mailing list %name has been added.', $t_args));
       $context = array_merge($t_args, ['link' => $mailing_list->toLink($this->t('View'), 'collection')->toString()]);
       $this->logger('mailing_list')->notice('Added mailing list %name.', $context);
     }

@@ -106,16 +106,16 @@ class SubscriptionForm extends ContentEntityForm {
     switch ($status) {
       case SAVED_NEW:
         if ($message = $list->getOnSubscriptionMessage()) {
-          drupal_set_message($message);
+          $this->messenger()->addStatus($message);
         }
         elseif ($this->currentUser()->id() == $entity->getOwnerId()) {
-          drupal_set_message($this->t('Your subscription %label to the %list mailing list has been processed. Check your email for further details.', [
+          $this->messenger()->addStatus($this->t('Your subscription %label to the %list mailing list has been processed. Check your email for further details.', [
             '%label' => $entity->label(),
             '%list' => $list->label(),
           ]));
         }
         else {
-          drupal_set_message($this->t('Subscription %label to the %list mailing list has been processed.', [
+          $this->messenger()->addStatus($this->t('Subscription %label to the %list mailing list has been processed.', [
             '%label' => $entity->label(),
             '%list' => $list->label(),
           ]));
@@ -124,7 +124,7 @@ class SubscriptionForm extends ContentEntityForm {
         break;
 
       default:
-        drupal_set_message($this->t('Subscription %label to the %list mailing list has been updated.', [
+        $this->messenger()->addStatus($this->t('Subscription %label to the %list mailing list has been updated.', [
           '%label' => $entity->label(),
           '%list' => $list->label(),
         ]));

@@ -7,7 +7,7 @@ use Drupal\Core\Cache\CacheableDependencyInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\views\Plugin\views\access\AccessPluginBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Symfony\Component\Routing\Route;
 
 /**
@@ -29,7 +29,7 @@ class Subscribe extends AccessPluginBase implements CacheableDependencyInterface
   /**
    * The entity manager.
    *
-   * @var \Drupal\Core\Entity\EntityManagerInterface
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityManager;
 
@@ -42,12 +42,12 @@ class Subscribe extends AccessPluginBase implements CacheableDependencyInterface
    *   The plugin_id for the plugin instance.
    * @param mixed $plugin_definition
    *   The plugin implementation definition.
-   * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity manager.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityManagerInterface $entity_manager) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->entityManager = $entity_manager;
+    $this->entityManager = $entity_type_manager;
   }
 
   /**

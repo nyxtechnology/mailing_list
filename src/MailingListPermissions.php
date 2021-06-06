@@ -2,9 +2,9 @@
 
 namespace Drupal\mailing_list;
 
-use Drupal\Core\Routing\UrlGeneratorTrait;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\mailing_list\Entity\MailingList;
+use Drupal\Core\Url;
 
 /**
  * Provides dynamic permissions for each mailing list.
@@ -12,7 +12,6 @@ use Drupal\mailing_list\Entity\MailingList;
 class MailingListPermissions {
 
   use StringTranslationTrait;
-  use UrlGeneratorTrait;
 
   /**
    * Returns an array of mailing list permissions.

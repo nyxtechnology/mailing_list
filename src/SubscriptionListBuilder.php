@@ -67,7 +67,7 @@ class SubscriptionListBuilder extends EntityListBuilder {
   public static function createInstance(ContainerInterface $container, EntityTypeInterface $entity_type) {
     return new static(
       $entity_type,
-      $container->get('entity.manager')->getStorage($entity_type->id()),
+      $container->get('entity_type.manager')->getStorage($entity_type->id()),
       $container->get('current_user'),
       $container->get('form_builder'),
       $container->get('request_stack')
@@ -115,7 +115,9 @@ class SubscriptionListBuilder extends EntityListBuilder {
       return $row;
     }
 
-    $uri = $entity->urlInfo();
+    // TODO: Drupal Rector Notice: Please delete the following comment after you've made any necessary changes.
+    // Please confirm that `$entity` is an instance of `Drupal\Core\Entity\EntityInterface`. Only the method name and not the class name was checked for this replacement, so this may be a false positive.
+    $uri = $entity->toUrl();
     $options = $uri->getOptions();
     $langcode = $entity->language()->getId();
     $languages = \Drupal::languageManager()->getLanguages();

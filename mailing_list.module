@@ -64,14 +64,14 @@ function template_preprocess_subscription(array &$variables) {
   $variables['subscription'] = $variables['elements']['#subscription'];
   /** @var \Drupal\mailing_list\SubscriptionInterface $subscription */
   $subscription = $variables['subscription'];
-  $variables['date'] = drupal_render($variables['elements']['created']);
+  $variables['date'] = \Drupal::service('renderer')->render($variables['elements']['created']);
   unset($variables['elements']['created']);
-  $variables['author_name'] = drupal_render($variables['elements']['uid']);
+  $variables['author_name'] = \Drupal::service('renderer')->render($variables['elements']['uid']);
   unset($variables['elements']['uid']);
 
-  $variables['url'] = $subscription->url('canonical', [
+  $variables['url'] = $subscription->toUrl('canonical', [
     'language' => $subscription->language(),
-  ]);
+  ])->toString();
   $variables['label'] = $variables['elements']['title'];
   unset($variables['elements']['title']);
   $variables['email'] = $variables['elements']['email'];
@@ -130,7 +130,7 @@ function mailing_list_cron() {
     $old_subscriptions = $subscription_query
       ->condition('mailing_list', $list->id())
       ->condition('status', SubscriptionInterface::INACTIVE)
-      ->condition('changed', REQUEST_TIME - $lifetime, '<')
+      ->condition('changed', \Drupal::time()->getRequestTime() - $lifetime, '<')
       ->execute();
 
     $count = 0;
