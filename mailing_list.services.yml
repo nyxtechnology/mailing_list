@@ -1,7 +1,7 @@
 services:
   mailing_list.manager:
     class: Drupal\mailing_list\MailingListManager
-    arguments: ['@current_user', '@session_manager', '@user.private_tempstore']
+    arguments: ['@current_user', '@session_manager', '@tempstore.private']
 
   access_check.subscription.add:
     class: Drupal\mailing_list\Access\SubscriptionAddAccessCheck
